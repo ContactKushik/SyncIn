@@ -14,7 +14,7 @@ public class Attendance {
     private Long attendanceId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "emp_id", referencedColumnName = "emp_id")
     private User user;
 
     private LocalDate date;
@@ -22,4 +22,3 @@ public class Attendance {
     @Enumerated(EnumType.STRING)
     private AttendanceStatus status;
 }
-

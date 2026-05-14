@@ -9,10 +9,7 @@ import lombok.Data;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
-
-    @Column(unique = true, nullable = false)
+    @Column(name = "emp_id", nullable = false, unique = true)
     private String empId;
 
     private String name;

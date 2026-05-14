@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const BASE_URL = 'http://localhost:8081';
+const BASE_URL = environment.apiUrl;
 const TOKEN_KEY = 'jwt_token';
 const ADMIN_TOKEN_KEY = 'admin_token';
 

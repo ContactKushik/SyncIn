@@ -37,6 +37,8 @@ export class ChangePassword {
         setTimeout(() => {
           const role = this.auth.getUserRole();
           if (role === 'POC') this.router.navigate(['/dashboard']);
+          else if (role === 'CR') this.router.navigate(['/dashboard/cr']);
+          else if (role === 'INTERN') this.router.navigate(['/dashboard/intern']);
           else this.router.navigate(['/']);
         }, 1000);
       },

@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,37 +25,35 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<User> optUser = userRepository.findByEmpId(request.getEmpId());
+        User user = userRepository.findById(request.getEmpId()).orElse(null);
 
-        if (optUser.isEmpty()) {
+        if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
-
-        User user = optUser.get();
 
         if (!user.getPasswordHash().equals(request.getPassword())) {
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
 
-        String token = jwtUtil.generateToken(user.getUserId(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmpId(), user.getRole().name());
 
         return ResponseEntity.ok(new LoginResponse(
                 token,
                 user.getRole().name(),
                 user.isFirstLogin(),
-                user.getUserId()
+                user.getEmpId()
         ));
     }
 
     @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(HttpServletRequest req,
                                             @RequestBody ChangePasswordRequest body) {
-        Long userId = (Long) req.getAttribute("userId");
-        if (userId == null) {
+        String empId = (String) req.getAttribute("empId");
+        if (empId == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
         }
 
-        User user = userRepository.findById(userId).orElse(null);
+        User user = userRepository.findById(empId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(404).body(Map.of("error", "User not found"));
         }

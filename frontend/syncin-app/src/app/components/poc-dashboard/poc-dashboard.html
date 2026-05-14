@@ -97,7 +97,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (intern of interns(); track intern.userId) {
+        @for (intern of interns(); track intern.empId) {
         <tr class="border-b hover:bg-gray-50">
           <td class="py-2 px-3 text-gray-600">{{ intern.empId }}</td>
           <td class="py-2 px-3 font-medium text-gray-800">{{ intern.name }}</td>
@@ -111,10 +111,10 @@
           </td>
           <td class="py-2 px-3">
             @if (intern.role === 'INTERN') {
-            <button (click)="promote(intern.userId)"
+            <button (click)="promote(intern.empId)"
               class="text-purple-600 hover:underline text-xs font-medium">Promote to CR</button>
             } @else if (intern.role === 'CR') {
-            <button (click)="demote(intern.userId)"
+            <button (click)="demote(intern.empId)"
               class="text-red-500 hover:underline text-xs font-medium">Demote to Intern</button>
             }
           </td>
@@ -185,4 +185,6 @@
   }
 
 </div>
+
+
 

@@ -21,9 +21,9 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(Long userId, String role) {
+    public String generateToken(String empId, String role) {
         return Jwts.builder()
-                .claim("userId", userId)
+                .claim("empId", empId)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
@@ -39,12 +39,11 @@ public class JwtUtil {
                 .getBody();
     }
 
-    public Long getUserIdFromToken(String token) {
-        return validateToken(token).get("userId", Long.class);
+    public String getEmpIdFromToken(String token) {
+        return validateToken(token).get("empId", String.class);
     }
 
     public String getRoleFromToken(String token) {
         return validateToken(token).get("role", String.class);
     }
 }
-

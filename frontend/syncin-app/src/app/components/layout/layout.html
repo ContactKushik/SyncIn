@@ -16,6 +16,16 @@
         📋 Cohorts
       </a>
       }
+      @if (role() === 'CR') {
+      <a routerLink="/dashboard/cr" class="block px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
+        📷 QR & Attendance
+      </a>
+      }
+      @if (role() === 'INTERN') {
+      <a routerLink="/dashboard/intern" class="block px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
+        🟢 Punch In
+      </a>
+      }
     </nav>
 
     <!-- User / Logout -->

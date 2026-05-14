@@ -31,7 +31,7 @@ public class AdminController {
         String password = body.get("password");
 
         if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
-            String token = jwtUtil.generateToken(0L, "ADMIN");
+            String token = jwtUtil.generateToken("ADMIN", "ADMIN");
             return ResponseEntity.ok(Map.of("token", token));
         }
         return ResponseEntity.status(401).body(Map.of("error", "Invalid admin credentials"));
@@ -58,7 +58,6 @@ public class AdminController {
 
         User saved = userRepository.save(user);
         return ResponseEntity.ok(Map.of(
-                "userId", saved.getUserId(),
                 "empId", saved.getEmpId(),
                 "name", saved.getName(),
                 "role", saved.getRole().name()

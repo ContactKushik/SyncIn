@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const BASE_URL = 'http://localhost:8081/poc';
+const BASE_URL = environment.apiUrl + '/poc';
 
 @Injectable({ providedIn: 'root' })
 export class PocApi {
@@ -32,3 +33,4 @@ export class PocApi {
     return this.http.put(`${BASE_URL}/interns/${userId}/demote`, {});
   }
 }
+

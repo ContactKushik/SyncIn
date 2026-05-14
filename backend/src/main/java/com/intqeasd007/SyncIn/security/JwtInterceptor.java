@@ -36,7 +36,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         try {
             Claims claims = jwtUtil.validateToken(token);
-            request.setAttribute("userId", claims.get("userId", Long.class));
+            request.setAttribute("empId", claims.get("empId", String.class));
             request.setAttribute("role", claims.get("role", String.class));
             return true;
         } catch (Exception e) {

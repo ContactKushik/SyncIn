@@ -29,10 +29,10 @@ public class POCController {
     private UserRepository userRepository;
 
     // ── helper: assert POC role ──
-    private Long requirePoc(HttpServletRequest req) {
+    private String requirePoc(HttpServletRequest req) {
         String role = (String) req.getAttribute("role");
         if (!"POC".equals(role)) return null;
-        return (Long) req.getAttribute("userId");
+        return (String) req.getAttribute("empId");
     }
 
     // ───────────── COHORT CRUD ─────────────
@@ -40,8 +40,8 @@ public class POCController {
     @PostMapping("/cohorts")
     public ResponseEntity<?> createCohort(HttpServletRequest req,
                                           @RequestBody CreateCohortRequest body) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
         if (cohortRepository.existsById(body.getBatchCode())) {
             return ResponseEntity.badRequest().body(Map.of("error", "Batch code already exists"));
@@ -50,7 +50,7 @@ public class POCController {
         Cohort cohort = new Cohort();
         cohort.setBatchCode(body.getBatchCode());
         cohort.setTrackName(body.getTrackName());
-        cohort.setPocId(pocId);
+        cohort.setPocEmpId(pocEmpId);
 
         Cohort saved = cohortRepository.save(cohort);
         return ResponseEntity.ok(Map.of(
@@ -61,10 +61,10 @@ public class POCController {
 
     @GetMapping("/cohorts")
     public ResponseEntity<?> getMyCohorts(HttpServletRequest req) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
-        List<Cohort> cohorts = cohortRepository.findByPocId(pocId);
+        List<Cohort> cohorts = cohortRepository.findByPocEmpId(pocEmpId);
         return ResponseEntity.ok(cohorts);
     }
 
@@ -73,12 +73,12 @@ public class POCController {
     @PostMapping("/interns")
     public ResponseEntity<?> onboardIntern(HttpServletRequest req,
                                            @RequestBody OnboardInternRequest body) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
         // Verify cohort belongs to this POC
         Cohort cohort = cohortRepository.findById(body.getBatchCode()).orElse(null);
-        if (cohort == null || !cohort.getPocId().equals(pocId)) {
+        if (cohort == null || !cohort.getPocEmpId().equals(pocEmpId)) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid cohort"));
         }
 
@@ -99,14 +99,13 @@ public class POCController {
         user.setCohort(cohort);
 
         User saved = userRepository.save(user);
-        return ResponseEntity.ok(Map.of(
-                "userId", saved.getUserId(),
-                "empId", saved.getEmpId(),
-                "name", saved.getName(),
-                "role", saved.getRole().name(),
-                "batchCode", cohort.getBatchCode(),
-                "tempPassword", plainTextPassword
-        ));
+        Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("empId", saved.getEmpId());
+        resp.put("name", saved.getName());
+        resp.put("role", saved.getRole().name());
+        resp.put("batchCode", cohort.getBatchCode());
+        resp.put("tempPassword", plainTextPassword);
+        return ResponseEntity.ok(resp);
     }
 
     // ───────────── GET INTERNS BY COHORT ─────────────
@@ -114,42 +113,43 @@ public class POCController {
     @GetMapping("/cohorts/{batchCode}/interns")
     public ResponseEntity<?> getInternsByCohort(HttpServletRequest req,
                                                 @PathVariable String batchCode) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
         Cohort cohort = cohortRepository.findById(batchCode).orElse(null);
-        if (cohort == null || !cohort.getPocId().equals(pocId)) {
+        if (cohort == null || !cohort.getPocEmpId().equals(pocEmpId)) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid cohort"));
         }
 
         List<User> interns = userRepository.findByCohort_BatchCode(batchCode);
-        List<Map<String, Object>> result = interns.stream().map(u -> Map.<String, Object>of(
-                "userId", u.getUserId(),
-                "empId", u.getEmpId(),
-                "name", u.getName(),
-                "email", u.getEmail(),
-                "mobileNo", u.getMobileNo(),
-                "role", u.getRole().name()
-        )).toList();
-
+        java.util.List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (User u : interns) {
+            Map<String, Object> m = new java.util.HashMap<>();
+            m.put("empId", u.getEmpId());
+            m.put("name", u.getName());
+            m.put("email", u.getEmail());
+            m.put("mobileNo", u.getMobileNo());
+            m.put("role", u.getRole().name());
+            result.add(m);
+        }
         return ResponseEntity.ok(result);
     }
 
     // ───────────── PROMOTE INTERN → CR ─────────────
 
-    @PutMapping("/interns/{userId}/promote")
+    @PutMapping("/interns/{empId}/promote")
     public ResponseEntity<?> promoteInternToCR(HttpServletRequest req,
-                                               @PathVariable Long userId) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+                                               @PathVariable String empId) {
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
-        User intern = userRepository.findById(userId).orElse(null);
+        User intern = userRepository.findById(empId).orElse(null);
         if (intern == null || intern.getCohort() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
         }
 
         Cohort cohort = intern.getCohort();
-        if (!cohort.getPocId().equals(pocId)) {
+        if (!cohort.getPocEmpId().equals(pocEmpId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
         }
 
@@ -166,7 +166,6 @@ public class POCController {
         userRepository.save(intern);
 
         return ResponseEntity.ok(Map.of(
-                "userId", intern.getUserId(),
                 "empId", intern.getEmpId(),
                 "name", intern.getName(),
                 "role", "CR"
@@ -175,19 +174,19 @@ public class POCController {
 
     // ───────────── DEMOTE CR → INTERN ─────────────
 
-    @PutMapping("/interns/{userId}/demote")
+    @PutMapping("/interns/{empId}/demote")
     public ResponseEntity<?> demoteCRToIntern(HttpServletRequest req,
-                                              @PathVariable Long userId) {
-        Long pocId = requirePoc(req);
-        if (pocId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+                                              @PathVariable String empId) {
+        String pocEmpId = requirePoc(req);
+        if (pocEmpId == null) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
-        User user = userRepository.findById(userId).orElse(null);
+        User user = userRepository.findById(empId).orElse(null);
         if (user == null || user.getCohort() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "User not found"));
         }
 
         Cohort cohort = user.getCohort();
-        if (!cohort.getPocId().equals(pocId)) {
+        if (!cohort.getPocEmpId().equals(pocEmpId)) {
             return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
         }
 
@@ -199,7 +198,6 @@ public class POCController {
         userRepository.save(user);
 
         return ResponseEntity.ok(Map.of(
-                "userId", user.getUserId(),
                 "empId", user.getEmpId(),
                 "name", user.getName(),
                 "role", "INTERN"
@@ -217,3 +215,4 @@ public class POCController {
         return sb.toString();
     }
 }
+

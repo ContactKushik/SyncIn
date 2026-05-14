@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Auth } from '../../services/auth';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-sudo',
@@ -23,7 +24,7 @@ export class AdminSudo {
   errorMsg = signal('');
 
   constructor(private authService: Auth, private http: HttpClient) {
-    this.isLoggedIn.set(this.authService.isAdminLoggedIn());
+    this.isLoggedIn.set(this.authService.isLoggedIn());
   }
 
   onLogin(): void {
@@ -37,7 +38,7 @@ export class AdminSudo {
   onCreatePoc(): void {
     this.successMsg.set('');
     this.errorMsg.set('');
-    this.http.post('http://localhost:8081/admin/create-poc', this.poc).subscribe({
+    this.http.post(`${environment.apiUrl}/admin/create-poc`, this.poc).subscribe({
       next: (res: any) => {
         this.successMsg.set(`POC created: ${res.name} (${res.empId})`);
         this.poc = { empId: '', name: '', email: '', mobileNo: '', passwordHash: '' };
@@ -49,7 +50,7 @@ export class AdminSudo {
   }
 
   onLogout(): void {
-    this.authService.adminLogout();
+    this.authService.logout();
     this.isLoggedIn.set(false);
   }
 }

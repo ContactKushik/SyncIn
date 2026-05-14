@@ -14,5 +14,6 @@ public class Cohort {
 
     private String trackName;
 
-    private Long pocId;
+    @Column(name = "poc_emp_id")
+    private String pocEmpId;
 }
