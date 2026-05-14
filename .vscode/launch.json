@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-SyncInApplication<SyncIn>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.intqeasd007.SyncIn.SyncInApplication",
+            "projectName": "SyncIn",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
