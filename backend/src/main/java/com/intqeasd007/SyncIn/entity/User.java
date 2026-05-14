@@ -16,7 +16,10 @@ public class User {
     private String empId;
 
     private String name;
+
+    @Column(unique = true)
     private String email;
+
     private String mobileNo;
     private String passwordHash;
 
@@ -27,7 +30,6 @@ public class User {
     private Role role;
 
     @ManyToOne
-    @JoinColumn(name = "cohort_id", nullable = true)
+    @JoinColumn(name = "batch_code", referencedColumnName = "batch_code", nullable = true)
     private Cohort cohort;
 }
-

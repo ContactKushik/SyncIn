@@ -1,0 +1,188 @@
+<div class="space-y-6">
+
+  <!-- ═══ CREATE COHORT ═══ -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-4">Create Cohort</h2>
+
+    @if (cohortMsg()) {
+    <div class="mb-3 text-sm text-green-700 bg-green-50 border border-green-300 rounded p-2">{{ cohortMsg() }}</div>
+    }
+    @if (cohortErr()) {
+    <div class="mb-3 text-sm text-red-600 bg-red-50 border border-red-300 rounded p-2">{{ cohortErr() }}</div>
+    }
+
+    <div class="flex gap-3 items-end">
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Batch Code</label>
+        <input [(ngModel)]="newCohort.batchCode" type="text" placeholder="e.g. B24-JAVA-01"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Track Name</label>
+        <input [(ngModel)]="newCohort.trackName" type="text" placeholder="e.g. Java Full Stack"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <button (click)="createCohort()"
+        class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition whitespace-nowrap">
+        + Create
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ COHORT TABLE ═══ -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-4">My Cohorts</h2>
+
+    @if (cohorts().length === 0) {
+    <p class="text-sm text-gray-400">No cohorts yet. Create one above.</p>
+    } @else {
+    <table class="w-full text-sm text-left">
+      <thead>
+        <tr class="border-b text-gray-500 uppercase text-xs">
+          <th class="py-2 px-3">Batch Code</th>
+          <th class="py-2 px-3">Track</th>
+          <th class="py-2 px-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cohorts(); track c.batchCode) {
+        <tr class="border-b hover:bg-gray-50 cursor-pointer"
+          [class.bg-blue-50]="selectedCohort()?.batchCode === c.batchCode"
+          (click)="selectCohort(c)">
+          <td class="py-2 px-3 font-medium text-gray-800">{{ c.batchCode }}</td>
+          <td class="py-2 px-3 text-gray-600">{{ c.trackName }}</td>
+          <td class="py-2 px-3">
+            <button (click)="selectCohort(c); $event.stopPropagation()"
+              class="text-blue-600 hover:underline text-xs">View Interns</button>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </div>
+
+  <!-- ═══ INTERNS OF SELECTED COHORT ═══ -->
+  @if (selectedCohort()) {
+  <div class="bg-white rounded-xl shadow p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-bold text-gray-800">
+        Interns — {{ selectedCohort().batchCode }}
+      </h2>
+      <button (click)="openOnboardModal()"
+        class="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+        + Onboard Intern
+      </button>
+    </div>
+
+    @if (promoteMsg()) {
+    <div class="mb-3 text-sm text-green-700 bg-green-50 border border-green-300 rounded p-2">{{ promoteMsg() }}</div>
+    }
+    @if (promoteErr()) {
+    <div class="mb-3 text-sm text-red-600 bg-red-50 border border-red-300 rounded p-2">{{ promoteErr() }}</div>
+    }
+
+    @if (interns().length === 0) {
+    <p class="text-sm text-gray-400">No interns in this cohort yet.</p>
+    } @else {
+    <table class="w-full text-sm text-left">
+      <thead>
+        <tr class="border-b text-gray-500 uppercase text-xs">
+          <th class="py-2 px-3">Emp ID</th>
+          <th class="py-2 px-3">Name</th>
+          <th class="py-2 px-3">Email</th>
+          <th class="py-2 px-3">Mobile</th>
+          <th class="py-2 px-3">Role</th>
+          <th class="py-2 px-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (intern of interns(); track intern.userId) {
+        <tr class="border-b hover:bg-gray-50">
+          <td class="py-2 px-3 text-gray-600">{{ intern.empId }}</td>
+          <td class="py-2 px-3 font-medium text-gray-800">{{ intern.name }}</td>
+          <td class="py-2 px-3 text-gray-600">{{ intern.email }}</td>
+          <td class="py-2 px-3 text-gray-600">{{ intern.mobileNo }}</td>
+          <td class="py-2 px-3">
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
+              [class]="intern.role === 'CR' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'">
+              {{ intern.role }}
+            </span>
+          </td>
+          <td class="py-2 px-3">
+            @if (intern.role === 'INTERN') {
+            <button (click)="promote(intern.userId)"
+              class="text-purple-600 hover:underline text-xs font-medium">Promote to CR</button>
+            } @else if (intern.role === 'CR') {
+            <button (click)="demote(intern.userId)"
+              class="text-red-500 hover:underline text-xs font-medium">Demote to Intern</button>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+    }
+  </div>
+  }
+
+  <!-- ═══ ONBOARD INTERN MODAL ═══ -->
+  @if (showModal()) {
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-gray-800">Onboard Intern</h3>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+      </div>
+
+      @if (onboardMsg()) {
+      <div class="mb-3 text-sm text-green-700 bg-green-50 border border-green-300 rounded p-2">{{ onboardMsg() }}</div>
+      }
+      @if (tempPassword()) {
+      <div class="mb-3 text-sm text-blue-700 bg-blue-50 border border-blue-300 rounded p-2">
+        Temp Password: <strong class="select-all">{{ tempPassword() }}</strong>
+      </div>
+      }
+      @if (onboardErr()) {
+      <div class="mb-3 text-sm text-red-600 bg-red-50 border border-red-300 rounded p-2">{{ onboardErr() }}</div>
+      }
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+          <input [(ngModel)]="internForm.empId" type="text" placeholder="EMP001"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input [(ngModel)]="internForm.name" type="text" placeholder="John Doe"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input [(ngModel)]="internForm.email" type="email" placeholder="john@example.com"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Mobile No</label>
+          <input [(ngModel)]="internForm.mobileNo" type="text" placeholder="+91 9876543210"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-5">
+        <button (click)="onboardIntern()"
+          class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition text-sm">
+          Onboard
+        </button>
+        <button (click)="closeModal()"
+          class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 rounded-lg transition text-sm">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+</div>
+

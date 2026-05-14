@@ -11,16 +11,25 @@ const ADMIN_TOKEN_KEY = 'admin_token';
 export class Auth {
   constructor(private http: HttpClient) {}
 
-  login(empId: string, password: string): Observable<{ token: string }> {
+  login(empId: string, password: string): Observable<any> {
     return this.http
-      .post<{ token: string }>(`${BASE_URL}/auth/login`, { empId, password })
-      .pipe(tap(res => localStorage.setItem(TOKEN_KEY, res.token)));
+      .post<any>(`${BASE_URL}/auth/login`, { empId, password })
+      .pipe(tap(res => {
+        localStorage.setItem(TOKEN_KEY, res.token);
+        localStorage.setItem('user_role', res.role);
+        localStorage.setItem('user_id', res.userId);
+        localStorage.setItem('is_first_login', res.firstLogin);
+      }));
   }
 
   adminLogin(username: string, password: string): Observable<{ token: string }> {
     return this.http
       .post<{ token: string }>(`${BASE_URL}/admin/login`, { username, password })
       .pipe(tap(res => localStorage.setItem(ADMIN_TOKEN_KEY, res.token)));
+  }
+
+  changePassword(newPassword: string): Observable<any> {
+    return this.http.put(`${BASE_URL}/auth/change-password`, { newPassword });
   }
 
   getToken(): string | null {
@@ -39,19 +48,27 @@ export class Auth {
     return !!this.getAdminToken();
   }
 
-  getRole(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role || null;
-    } catch {
-      return null;
-    }
+  isFirstLogin(): boolean {
+    return localStorage.getItem('is_first_login') === 'true';
+  }
+
+  getUserRole(): string | null {
+    return localStorage.getItem('user_role');
+  }
+
+  getUserId(): string | null {
+    return localStorage.getItem('user_id');
+  }
+
+  clearFirstLogin(): void {
+    localStorage.setItem('is_first_login', 'false');
   }
 
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('is_first_login');
   }
 
   adminLogout(): void {

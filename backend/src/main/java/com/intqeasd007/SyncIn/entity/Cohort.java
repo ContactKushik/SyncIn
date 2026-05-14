@@ -9,13 +9,10 @@ import lombok.Data;
 public class Cohort {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cohortId;
-
+    @Column(name = "batch_code", nullable = false, unique = true)
     private String batchCode;
 
     private String trackName;
 
     private Long pocId;
 }
-

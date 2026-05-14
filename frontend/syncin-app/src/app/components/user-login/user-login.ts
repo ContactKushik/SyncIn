@@ -17,6 +17,10 @@ export class UserLogin {
   constructor(private authService: Auth, private router: Router) {
     if (this.authService.isAdminLoggedIn()) {
       this.router.navigate(['/admin']);
+      return;
+    }
+    if (this.authService.isLoggedIn()) {
+      this.redirectByRole();
     }
   }
 
@@ -24,15 +28,21 @@ export class UserLogin {
     this.error.set('');
     this.authService.login(this.empId, this.password).subscribe({
       next: (res: any) => {
-        // TODO: navigate based on role (POC / INTERN)
-        alert(`Login successful! Role: ${res.role}`);
+        if (res.firstLogin) {
+          this.router.navigate(['/change-password']);
+        } else {
+          this.redirectByRole();
+        }
       },
       error: () => {
         this.error.set('Invalid Employee ID or Password.');
       }
     });
   }
+
+  private redirectByRole() {
+    const role = this.authService.getUserRole();
+    if (role === 'POC') this.router.navigate(['/dashboard']);
+    else this.router.navigate(['/']);
+  }
 }
-
-
-
